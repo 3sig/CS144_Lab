@@ -1,3 +1,11 @@
+## My Implementation Notes
+
+- lab0: webget & byte_stream in memory
+- lab1: stream_reassembler
+  - use a vector &lt;char> as buffer, with a vector &lt;bool> to indicate which index is valid;
+  - store stream[index] in buffer[index % capacity]
+  - use a variable offset as the first unassembled index;
+
 For build prereqs, see [the CS144 VM setup instructions](https://web.stanford.edu/class/cs144/vm_howto).
 
 ## Sponge quickstart
