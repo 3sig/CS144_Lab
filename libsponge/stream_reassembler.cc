@@ -27,6 +27,7 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
     for(i = 0;i<data.size();++i){
         size_t pos = index + i;
         if(pos>=offset + _capacity - outbuf_size )break;
+        if(pos < offset)continue;
         size_t real_pos = pos%_capacity;
 
         if(buf_status[real_pos])continue;
