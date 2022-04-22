@@ -49,7 +49,7 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
     }
     offset += tmp.size();
     _output.write(tmp);
-    if(eof && unassembled_count==0)_output.end_input();
+    if(_eof && unassembled_count==0)_output.end_input();
 }
 
 size_t StreamReassembler::unassembled_bytes() const { return unassembled_count; }
