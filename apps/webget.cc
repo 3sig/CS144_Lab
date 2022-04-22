@@ -6,6 +6,19 @@
 
 using namespace std;
 
+void send_get(TCPSocket &sock, const string &host, const string &path) {
+    sock.write("GET " + path + " HTTP/1.1\r\n");
+    sock.write("Host: " + host + "\r\n");
+    sock.write("User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91\r\n");
+    sock.write("Connection: close\r\n");
+    sock.write("\r\n\r\n");
+}
+
+void read_print(TCPSocket &sock) {
+    while (!sock.eof()) {
+        std::cout << sock.read();
+    }
+}
 void get_URL(const string &host, const string &path) {
     // Your code here.
 
@@ -16,9 +29,10 @@ void get_URL(const string &host, const string &path) {
     // Then you'll need to print out everything the server sends back,
     // (not just one call to read() -- everything) until you reach
     // the "eof" (end of file).
-
-    cerr << "Function called: get_URL(" << host << ", " << path << ").\n";
-    cerr << "Warning: get_URL() has not been implemented yet.\n";
+    TCPSocket sock1;
+    sock1.connect(Address(host, "http"));
+    send_get(sock1, host, path);
+    read_print(sock1);
 }
 
 int main(int argc, char *argv[]) {
