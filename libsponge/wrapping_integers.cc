@@ -29,18 +29,19 @@ WrappingInt32 wrap(uint64_t n, WrappingInt32 isn) {
 //! runs from the local TCPSender to the remote TCPReceiver and has one ISN,
 //! and the other stream runs from the remote TCPSender to the local TCPReceiver and
 //! has a different ISN.
+static constexpr uint64_t mask = UINT64_MAX - UINT32_MAX;
 uint64_t unwrap(WrappingInt32 n, WrappingInt32 isn, uint64_t checkpoint) {
     uint64_t seq = n.raw_value(), isn_t = isn.raw_value();
     if(seq < isn_t)seq += modulo;
     seq = seq - isn_t;
     if(seq >= checkpoint)return seq;
-    uint64_t tail = checkpoint % modulo;
+    uint64_t tail = checkpoint & UINT32_MAX;
     if(seq > tail && seq - tail > (1ul << 31)){
-        seq = seq + (checkpoint-tail) - (1ul <<32);
+        seq = seq + (checkpoint&mask) - modulo;
     }else if(seq < tail && tail-seq >(1ul <<31)){
-        seq = seq + (checkpoint-tail) + modulo;
+        seq = seq + (checkpoint&mask) + modulo;
     }else{
-        seq = seq + (checkpoint-tail);
+        seq = seq + (checkpoint&mask);
     }
     return seq;
 }
