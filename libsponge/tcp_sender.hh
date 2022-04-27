@@ -11,6 +11,36 @@
 
 //! \brief The "sender" part of a TCP implementation.
 
+class Timer{
+  private:
+    uint64_t _base_time{0};
+    uint64_t _rto{0};
+    bool _valid{false};
+  public:
+    Timer(uint64_t rto = 0) :_rto(rto) {};
+    bool timeout(uint64_t current_time){
+        if(running())
+            return _base_time+ _rto <= current_time;
+        return false;
+    }
+    void set_basetime(uint64_t base_time){
+        _base_time = base_time;
+    }
+    uint64_t & rto(){
+        return _rto;
+    }
+    void start(){
+        _valid = true;
+    }
+    void stop(){
+        _valid = false;
+    }
+    bool running(){
+        return _valid;
+    }
+};
+
+
 //! Accepts a ByteStream, divides it up into segments and sends the
 //! segments, keeps track of which segments are still in-flight,
 //! maintains the Retransmission Timer, and retransmits in-flight
@@ -31,7 +61,13 @@ class TCPSender {
 
     //! the (absolute) sequence number for the next byte to be sent
     uint64_t _next_seqno{0};
+    uint64_t _ack_no{0};
+    uint64_t _window_size{1};
+    uint64_t _consecutive_retransmissions{0};
+    uint64_t _current_time{0};
 
+    Timer _timer{};
+    std::deque<TCPSegment> _segments_without_ack{};
   public:
     //! Initialize a TCPSender
     TCPSender(const size_t capacity = TCPConfig::DEFAULT_CAPACITY,
@@ -89,4 +125,14 @@ class TCPSender {
     //!@}
 };
 
+enum TCPSenderState{
+    SERROR,
+    CLOSED,
+    SYN_SENT,
+    SYN_ACKED,
+    SYN_ACKED_2,
+    FIN_SENT,
+    FIN_ACKED,
+};
+TCPSenderState sender_state(TCPSender& sender);
 #endif  // SPONGE_LIBSPONGE_TCP_SENDER_HH
