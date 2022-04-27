@@ -19,7 +19,9 @@ class TCPReceiver {
 
     //! The maximum number of bytes we'll store.
     size_t _capacity;
-
+    std::optional<WrappingInt32> _isn{};
+    // should be the last reassembled byte
+    uint64_t _checkpoint{0};
   public:
     //! \brief Construct a TCP receiver
     //!
@@ -63,4 +65,11 @@ class TCPReceiver {
     //!@}
 };
 
+enum TCPReceiverState{
+    ERROR,
+    LISTEN,
+    SYN_RECV,
+    FIN_RECV
+};
+TCPReceiverState receiver_state(const TCPReceiver& receiver);
 #endif  // SPONGE_LIBSPONGE_TCP_RECEIVER_HH
