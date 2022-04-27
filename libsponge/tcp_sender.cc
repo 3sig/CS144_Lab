@@ -3,6 +3,7 @@
 #include "tcp_config.hh"
 
 #include <random>
+
 // Dummy implementation of a TCP sender
 
 // For Lab 3, please replace with a real implementation that passes the
@@ -10,7 +11,6 @@
 
 template <typename... Targs>
 void DUMMY_CODE(Targs &&... /* unused */) {}
-
 using namespace std;
 
 //! \param[in] capacity the capacity of the outgoing byte stream
@@ -32,12 +32,13 @@ void TCPSender::fill_window() {
         return;
     }
     uint64_t win = _window_size ? _window_size:1;
-    uint64_t window_remained = win - bytes_in_flight();
+    uint64_t window_remained = win > bytes_in_flight() ? win-bytes_in_flight() : 0;
     while(window_remained &&
            (!stream_in().buffer_empty()  // has data to be sent
             || sender_state(*this) == CLOSED  // no syn sent
             || sender_state(*this) == SYN_ACKED_2  // stream_in.eof() && no fin sent
             )){
+
         TCPSegment segment;
         segment.header().seqno = next_seqno();
         size_t payload_limit = TCPConfig::MAX_PAYLOAD_SIZE;
@@ -102,6 +103,7 @@ void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_si
         if(seg_ack > _ack_no) break;
         _segments_without_ack.pop_front();
     }
+    fill_window();
 }
 
 //! \param[in] ms_since_last_tick the number of milliseconds since the last call to this method
@@ -125,7 +127,11 @@ unsigned int TCPSender::consecutive_retransmissions() const {
     return _consecutive_retransmissions;
 }
 
-void TCPSender::send_empty_segment() {}
+void TCPSender::send_empty_segment() {
+    TCPSegment segment;
+    segment.header().seqno = next_seqno();
+    segments_out().push(segment);
+}
 
 
 TCPSenderState sender_state(TCPSender& sender){
