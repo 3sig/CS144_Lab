@@ -1,5 +1,6 @@
 #include "stream_reassembler.hh"
-#include <iostream>
+
+
 // Dummy implementation of a stream reassembler.
 
 // For Lab 1, please replace with a real implementation that passes the
@@ -12,47 +13,62 @@ void DUMMY_CODE(Targs &&... /* unused */) {}
 
 using namespace std;
 
-StreamReassembler::StreamReassembler(const size_t capacity)
-    : _output(capacity), _capacity(capacity),offset(0),unassembled_count(0),buf_status(capacity),buffer(capacity,false),_eof(false) {}
+StreamReassembler::StreamReassembler(const size_t capacity) : _output(capacity), _capacity(capacity) {}
 
 //! \details This function accepts a substring (aka a segment) of bytes,
 //! possibly out-of-order, from the logical stream, and assembles any newly
 //! contiguous substrings and writes them into the output stream in order.
 void StreamReassembler::push_substring(const string &data, const size_t index, const bool eof) {
-    if(_output.eof())return;
-
-    //always store stream[index] in buffer[i%capacity]
-    size_t outbuf_size = _output.buffer_size();
-    size_t i;
-    for(i = 0;i<data.size();++i){
-        size_t pos = index + i;
-        if(pos>=offset + _capacity - outbuf_size )break;
-        if(pos < offset)continue;
-        size_t real_pos = pos%_capacity;
-
-        if(buf_status[real_pos])continue;
-
-        buf_status[real_pos] = true;
-        ++unassembled_count;
-        buffer[real_pos] = data[i];
+    if(eof){
+        _eof_position = index+data.size();
     }
-    if(eof && i==data.size())_eof = true;
-    // bytes to be assembled
-    size_t unassembled_begin = offset;
-    unassembled_begin = unassembled_begin % _capacity;
-    string tmp;
-    while(buf_status[unassembled_begin]){
-        buf_status[unassembled_begin] = false;
-        tmp.push_back(buffer[unassembled_begin]);
-        ++unassembled_begin;
-        unassembled_begin %= _capacity;
-        --unassembled_count;
+    if(data.size() + index < stream_out().bytes_written())return ;
+    // un-assembled window
+    size_t _left_1 = std::max(index,stream_out().bytes_written());
+    size_t _right_1 = std::min(index+data.size(),stream_out().bytes_written()+_capacity);
+
+    // cut the non-repeated part of string, store it in map,
+    size_t left = _left_1, right = left;
+    while(left < _right_1){
+        size_t next_left = left;
+        auto it = _buffer.upper_bound(left);
+
+        if(it == _buffer.end()){
+            right = _right_1;
+            next_left = right;
+        }else{
+            next_left = it->first;
+            size_t buffer_right = it->first - it->second.size();
+            right = std::min(buffer_right,_right_1);
+        }
+        if(right>left){
+            size_t sub_size = right-left;
+            _unassembled += sub_size;
+            _buffer.insert({right,data.substr(left-index,sub_size)});
+        }
+        left = next_left;
     }
-    offset += tmp.size();
-    _output.write(tmp);
-    if(_eof && unassembled_count==0)_output.end_input();
+
+    assemble();
 }
 
-size_t StreamReassembler::unassembled_bytes() const { return unassembled_count; }
+size_t StreamReassembler::unassembled_bytes() const { return _unassembled; }
 
-bool StreamReassembler::empty() const { return _output.buffer_empty() && unassembled_count==0; }
+bool StreamReassembler::empty() const { return _buffer.empty(); }
+
+void StreamReassembler::assemble() {
+    while(not _buffer.empty()){
+        auto it = _buffer.begin();
+        uint64_t index = it->first - it->second.size();
+        if(index > stream_out().bytes_written()){
+            break;
+        }
+        _unassembled -= it->second.size();
+
+        stream_out().write(it->second);
+        _buffer.erase(it);
+    }
+    if(stream_out().bytes_written() == _eof_position){
+        stream_out().end_input();
+    }
+}
