@@ -34,7 +34,11 @@
 - ![img_3.png](img_3.png)
 - Once you pass the check_lab4 tests,try the tcp_benchmark. you can revise your previous labs for better performance.
 
-### Lab5 #TBD
+### Lab5 Network Interface
+- Follow lab5 instructions, implement the ARP, lab 5 is much easier than previous lab. But it's a little tedious.
+- Read the pages about "[ARP protocol](https://en.wikipedia.org/wiki/Address_Resolution_Protocol)" and "[Ethernet Frame](https://en.wikipedia.org/wiki/Ethernet_frame)" on wikipedia, understand their packet structure, and find the corresponding header values are in "ethernet_frame.hh" and "arp_message.hh".
+- Check this lab, particularly the webget part on CS144VM environment, or it may be notwork.
+
 
 ---
 For build prereqs, see [the CS144 VM setup instructions](https://web.stanford.edu/class/cs144/vm_howto).
