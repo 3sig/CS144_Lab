@@ -65,7 +65,7 @@ void TCPSender::fill_window() {
         window_remained -= segment.length_in_sequence_space();
 
         _segments_without_ack.push_back(segment);
-        segments_out().push(segment);
+        segments_out().push(std::move(segment));
 
     }
 }
@@ -130,7 +130,7 @@ unsigned int TCPSender::consecutive_retransmissions() const {
 void TCPSender::send_empty_segment() {
     TCPSegment segment;
     segment.header().seqno = next_seqno();
-    segments_out().push(segment);
+    segments_out().push(std::move(segment));
 }
 
 
