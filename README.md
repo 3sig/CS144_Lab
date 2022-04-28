@@ -12,7 +12,9 @@
 - So I turn to use std::map. The basic idea is only put non-overlapping byte segments into the buffer map. If all segments in buffer are already non-overlapping, all you need to do is find which substring is not in the buffer. Use the **right most** index of a segment as the map key. Every iteration, look up the first key in map which is bigger than the left index, because this is the only possible overlapping segment with substring[left, ...], let right = min(substr_right_index, segment_in_map_left_index), push substr[left,right] into buffer and set next left = key. After buffer map insertion, just pick the buffer.begin() and write it into stream_out if it's index==bytes_read, repeat this until buffer is empty or the first index is larger than stream_out.bytes_written.
 ![img.png](img.png)
 - The std::map implementation is much efficient than the vector one, and the throughput soared a lot:
-- ![img_1.png](img_1.png)
+- benchmark(lab4) before and after.
+  - ![img_4.png](img_4.png)
+  - ![img_1.png](img_1.png)
 
 ### Lab2 TCP Receiver
 - The lab instruction shows a picture about evolution of the TCP receiver state.
