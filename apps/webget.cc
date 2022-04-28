@@ -1,12 +1,10 @@
-#include "socket.hh"
-#include "util.hh"
+#include "tcp_sponge_socket.hh"
 
 #include <cstdlib>
 #include <iostream>
 
 using namespace std;
-
-void send_get(TCPSocket &sock, const string &host, const string &path) {
+void send_get(FullStackSocket &sock, const string &host, const string &path) {
     sock.write("GET " + path + " HTTP/1.1\r\n");
     sock.write("Host: " + host + "\r\n");
     sock.write("User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91\r\n");
@@ -14,7 +12,7 @@ void send_get(TCPSocket &sock, const string &host, const string &path) {
     sock.write("\r\n\r\n");
 }
 
-void read_print(TCPSocket &sock) {
+void read_print(FullStackSocket &sock) {
     while (!sock.eof()) {
         std::cout << sock.read();
     }
@@ -29,10 +27,11 @@ void get_URL(const string &host, const string &path) {
     // Then you'll need to print out everything the server sends back,
     // (not just one call to read() -- everything) until you reach
     // the "eof" (end of file).
-    TCPSocket sock1;
+    FullStackSocket sock1;
     sock1.connect(Address(host, "http"));
     send_get(sock1, host, path);
     read_print(sock1);
+    sock1.wait_until_closed();
 }
 
 int main(int argc, char *argv[]) {
