@@ -12,7 +12,7 @@ class ByteStream {
   private:
     // Your code here -- add private members as necessary.
   public: //public for test
-    std::vector<char> buf;
+    std::string buf;
     size_t beg;
     size_t end;
     size_t total_written{0};

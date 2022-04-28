@@ -12,7 +12,7 @@ void DUMMY_CODE(Targs &&... /* unused */) {}
 
 using namespace std;
 
-ByteStream::ByteStream(const size_t capacity) : buf(capacity + 1), beg(0), end(0) {}
+ByteStream::ByteStream(const size_t capacity) : buf(capacity + 1,'\0'), beg(0), end(0) {}
 
 size_t ByteStream::write(const string &data) {
     size_t i = 0;
@@ -29,15 +29,19 @@ size_t ByteStream::write(const string &data) {
 
 //! \param[in] len bytes will be copied from the output side of the buffer
 string ByteStream::peek_output(const size_t len) const {
+    size_t strsz = std::min(len,buffer_size());
     string str;
-    str.reserve(len);
-    size_t i = beg, read = 0;
-    while (i != end && read < len) {
-        str.push_back(buf[i]);
-        i = (i + 1) % buf.size();
-        ++read;
+    if(beg < end){
+        str = string(buf.begin()+beg, buf.begin()+beg+strsz);
+    }else{
+        if(strsz< buf.size() - beg){
+            str = string(buf.begin()+beg,buf.begin()+beg+strsz);
+        }else{
+            size_t sz2 = strsz - (buf.size()-beg);
+            str = string(buf.begin()+beg,buf.end());
+            str += string(buf.begin(), buf.begin()+sz2);
+        }
     }
-
     return str;
 }
 
