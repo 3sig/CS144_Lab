@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <buffer.hh>
 //! \brief An in-order byte stream.
 
 //! Bytes are written on the "input" side and read from the "output"
@@ -11,10 +12,10 @@
 class ByteStream {
   private:
     // Your code here -- add private members as necessary.
-  public: //public for test
-    std::string buf;
-    size_t beg;
-    size_t end;
+    size_t _capacity;
+
+    std::string buf{};
+
     size_t total_written{0};
     size_t total_read{0};
     // Hint: This doesn't need to be a sophisticated data structure at
