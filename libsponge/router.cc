@@ -1,7 +1,6 @@
 #include "router.hh"
 
 #include <iostream>
-
 using namespace std;
 
 // Dummy implementation of an IP router
@@ -29,14 +28,61 @@ void Router::add_route(const uint32_t route_prefix,
     cerr << "DEBUG: adding route " << Address::from_ipv4_numeric(route_prefix).ip() << "/" << int(prefix_length)
          << " => " << (next_hop.has_value() ? next_hop->ip() : "(direct)") << " on interface " << interface_num << "\n";
 
-    DUMMY_CODE(route_prefix, prefix_length, next_hop, interface_num);
     // Your code here.
+    uint8_t shift = 32 - prefix_length;
+    uint32_t mask = 0xffffffff;
+    mask <<= shift;
+    mask = prefix_length ? mask : 0;
+    _route_table.push_back({route_prefix,mask,next_hop,interface_num});
 }
 
 //! \param[in] dgram The datagram to be routed
 void Router::route_one_datagram(InternetDatagram &dgram) {
-    DUMMY_CODE(dgram);
     // Your code here.
+    if(dgram.header().ttl<=1)return;
+    uint32_t dst = dgram.header().dst;
+    bool found = false;
+    std::optional<Address> addr{};
+    size_t interface_num = 0;
+    uint32_t mask = 0;
+    for(auto item: _route_table){
+        uint32_t prefix = get<0>(item);
+        uint32_t item_mask = get<1>(item);
+        if( (prefix & item_mask) == (dst & item_mask)){
+            found = true;
+            if(mask <= item_mask){
+                mask = item_mask;
+                addr = get<2>(item);
+                interface_num = get<3>(item);
+            }
+        }
+
+    }
+
+    if(not found)return;
+    --dgram.header().ttl;
+    Address next_addr = addr.has_value()?addr.value() : Address::from_ipv4_numeric(dst);
+    interface(interface_num).send_datagram(dgram,next_addr);
+//    uint32_t mask = 0xffffffff;
+//    uint32_t dst = dgram.header().dst;
+//    for(int i = 0; i < 32;++i){
+//
+//        uint64_t  key = dst&mask;
+//        key <<=32;
+//        key |= mask;
+//        auto it = _route_table.find(dst & mask);
+//        if(it==_route_table.end()){
+//            mask <<= 1;
+//            continue;
+//        }
+//        --dgram.header().ttl;
+//        Address next_addr = it->second.first.has_value() ?
+//                                                         it->second.first.value()
+//                                                         : Address::from_ipv4_numeric(dgram.header().dst);
+//        interface(it->second.second).send_datagram(dgram,next_addr);
+//        break;
+//    }
+
 }
 
 void Router::route() {
