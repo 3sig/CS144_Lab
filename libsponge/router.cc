@@ -63,25 +63,6 @@ void Router::route_one_datagram(InternetDatagram &dgram) {
     --dgram.header().ttl;
     Address next_addr = addr.has_value()?addr.value() : Address::from_ipv4_numeric(dst);
     interface(interface_num).send_datagram(dgram,next_addr);
-//    uint32_t mask = 0xffffffff;
-//    uint32_t dst = dgram.header().dst;
-//    for(int i = 0; i < 32;++i){
-//
-//        uint64_t  key = dst&mask;
-//        key <<=32;
-//        key |= mask;
-//        auto it = _route_table.find(dst & mask);
-//        if(it==_route_table.end()){
-//            mask <<= 1;
-//            continue;
-//        }
-//        --dgram.header().ttl;
-//        Address next_addr = it->second.first.has_value() ?
-//                                                         it->second.first.value()
-//                                                         : Address::from_ipv4_numeric(dgram.header().dst);
-//        interface(it->second.second).send_datagram(dgram,next_addr);
-//        break;
-//    }
 
 }
 
