@@ -32,8 +32,9 @@ void Router::add_route(const uint32_t route_prefix,
     uint8_t shift = 32 - prefix_length;
     uint32_t mask = 0xffffffff;
     mask <<= shift;
-    mask = prefix_length ? mask : 0;
-    _route_table.push_back({route_prefix,mask,next_hop,interface_num});
+    uint32_t  prefix = prefix_length? (route_prefix & mask) : 0;
+    _route_table[prefix_length][prefix] = {next_hop,interface_num};
+
 }
 
 //! \param[in] dgram The datagram to be routed
@@ -41,29 +42,19 @@ void Router::route_one_datagram(InternetDatagram &dgram) {
     // Your code here.
     if(dgram.header().ttl<=1)return;
     uint32_t dst = dgram.header().dst;
-    bool found = false;
-    std::optional<Address> addr{};
-    size_t interface_num = 0;
-    uint32_t mask = 0;
-    for(auto item: _route_table){
-        uint32_t prefix = get<0>(item);
-        uint32_t item_mask = get<1>(item);
-        if( (prefix & item_mask) == (dst & item_mask)){
-            found = true;
-            if(mask <= item_mask){
-                mask = item_mask;
-                addr = get<2>(item);
-                interface_num = get<3>(item);
-            }
+    uint32_t mask = 0xffffffff;
+    for(uint32_t i = _route_table.size()-1;i < _route_table.size(); --i){
+        auto it = _route_table[i].find(dst & mask);
+        if(it == _route_table[i].end()){
+            mask <<= 1;
+            continue;
         }
-
+        --dgram.header().ttl;
+        size_t interface_num = it->second.second;
+        Address add = it->second.first.has_value() ? it->second.first.value() : Address::from_ipv4_numeric(dst);
+        interface(interface_num).send_datagram(dgram,add);
+        break;
     }
-
-    if(not found)return;
-    --dgram.header().ttl;
-    Address next_addr = addr.has_value()?addr.value() : Address::from_ipv4_numeric(dst);
-    interface(interface_num).send_datagram(dgram,next_addr);
-
 }
 
 void Router::route() {

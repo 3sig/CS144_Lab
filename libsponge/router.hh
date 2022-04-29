@@ -48,7 +48,8 @@ class Router {
     //! as specified by the route with the longest prefix_length that matches the
     //! datagram's destination address.
     void route_one_datagram(InternetDatagram &dgram);
-    std::vector<std::tuple<uint32_t , uint32_t ,std::optional<Address> ,size_t>> _route_table{};
+    std::array<std::map<uint32_t , std::pair<std::optional<Address>, size_t>>,33> _route_table{};
+
   public:
     //! Add an interface to the router
     //! \param[in] interface an already-constructed network interface
