@@ -39,9 +39,18 @@
 - Read the pages about "[ARP protocol](https://en.wikipedia.org/wiki/Address_Resolution_Protocol)" and "[Ethernet Frame](https://en.wikipedia.org/wiki/Ethernet_frame)" on wikipedia, understand their packet structure, and find the corresponding header values are in "ethernet_frame.hh" and "arp_message.hh".
 - Check this lab, particularly the webget part on CS144VM environment, or it may be notwork.
 
-
+### Lab6 IP Router
+- Provided that you choose an O(N) brute force search algorithm, this lab is pretty easy and needs only about 20 lines of code.
+- Or consider std::array&lt;std::map, 33>, array index indicate the prefix length, and iterate array index from 32 to 0 to lookup the best-match router item. It's time complexity will be O(log n).
+- Maybe the best way is use a Trie, since an ip address has only 32 bits, the time complexity will be constant, O(1).
 ---
 For build prereqs, see [the CS144 VM setup instructions](https://web.stanford.edu/class/cs144/vm_howto).
+
+### Lab7 Putting it all together
+- There is no code to write for this one.
+- Run "make check" to check all tests, and run apps/lab7 to make a real tcp connect.
+  - ![img_5.png](img_5.png)
+  - ![img_6.png](img_6.png)
 
 ## Sponge quickstart
 
